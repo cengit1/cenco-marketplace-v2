@@ -530,7 +530,7 @@ const Home: NextPage<any> = ({ ssr }) => {
         </Box>
       </Box>
 
-      <Footer />
+      {/*<Footer />*/}
     </Layout>
   )
 }
