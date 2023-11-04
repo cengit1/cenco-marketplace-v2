@@ -1,0 +1,24 @@
+{
+  "id": "mig_ck0rbvrf4dpqf7fqn850",
+  "parentID": "mig_ck0r91ega6tatjnqcgng",
+  "checksum": "1:d877d28b13a47a0eca8ba63ae4120e41af266d3e95a6d690de88b0f038f23422",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "walletAddress",
+        "table": "assetEmbedding"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "sendFeeToWalletAddress",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": "\"\""
+        },
+        "table": "assetEmbedding"
+      }
+    }
+  ]
+}

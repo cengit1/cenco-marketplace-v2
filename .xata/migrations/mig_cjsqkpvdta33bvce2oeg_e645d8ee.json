@@ -1,0 +1,90 @@
+{
+  "id": "mig_cjsqkpvdta33bvce2oeg",
+  "checksum": "1:e645d8eefea509a2ac7eaa644944ade324e694766eb11f99ac3b9d54feee505f",
+  "operations": [
+    {
+      "addTable": {
+        "table": "users"
+      }
+    },
+    {
+      "addTable": {
+        "table": "resellingItems"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "username",
+          "type": "string",
+          "unique": true
+        },
+        "table": "users"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "walletAddress",
+          "type": "string",
+          "unique": true
+        },
+        "table": "users"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "assetAddress",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": "null"
+        },
+        "table": "resellingItems"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "assetTokenId",
+          "type": "string"
+        },
+        "table": "resellingItems"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "feesOnTop",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": "null"
+        },
+        "table": "resellingItems"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "defaultLayout",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": "horizontal"
+        },
+        "table": "resellingItems"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "user",
+          "type": "link",
+          "link": {
+            "table": "users"
+          }
+        },
+        "table": "resellingItems"
+      }
+    }
+  ]
+}

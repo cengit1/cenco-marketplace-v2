@@ -49,8 +49,17 @@ import { useAccount } from 'wagmi'
 import { Head } from 'components/Head'
 import { OffersTable } from 'components/token/OffersTable'
 import { ListingsTable } from 'components/token/ListingsTable'
+import { getCurrentTab } from '../../../utils/router';
+import { CreateWidget } from '../../../components/resell/CreateWidget';
+import { xata } from '../../../utils/db';
+import { getAuth, buildClerkProps } from '@clerk/nextjs/server';
+import _omit from 'lodash/omit';
 
-type Props = InferGetServerSidePropsType<typeof getServerSideProps>
+import { AssetWidget } from '../../../types/widget';
+
+
+
+export type AssetPageProps = InferGetServerSidePropsType<typeof getServerSideProps>
 
 type ActivityTypes = Exclude<
   NonNullable<
@@ -61,16 +70,16 @@ type ActivityTypes = Exclude<
   string
 >
 
-const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
+const IndexPage: NextPage<AssetPageProps> = ({ assetId, tokensFallback, collectionFallback, existingWidget }) => {
   const assetIdPieces = assetId ? assetId.toString().split(':') : []
   let collectionId = assetIdPieces[0]
-  const id = assetIdPieces[1]
+  const tokenId = assetIdPieces[1]
   const router = useRouter()
   const { addToast } = useContext(ToastContext)
   const account = useAccount()
   const isMounted = useMounted()
   const isSmallDevice = useMediaQuery({ maxWidth: 900 }) && isMounted
-  const [tabValue, setTabValue] = useState('info')
+  const [tabValue, setTabValue] = useState(getCurrentTab() ?? 'info')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const [activityFiltersOpen, setActivityFiltersOpen] = useState(true)
@@ -82,13 +91,13 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
 
   const { data: tokens, mutate } = useDynamicTokens(
     {
-      tokens: [`${contract}:${id}`],
+      tokens: [`${contract}:${tokenId}`],
       includeAttributes: true,
       includeTopBid: true,
       includeQuantity: true,
     },
     {
-      fallbackData: [ssr.tokens ? ssr.tokens : {}],
+      fallbackData: [tokensFallback],
     }
   )
 
@@ -101,7 +110,7 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
       id: token?.token?.collection?.id,
     },
     {
-      fallbackData: [ssr.collection ? ssr.collection : {}],
+      fallbackData: [collectionFallback],
     }
   )
   const collection = collections && collections[0] ? collections[0] : null
@@ -109,7 +118,7 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
   const { data: userTokens } = useUserTokens(
     is1155 ? account.address : undefined,
     {
-      tokens: [`${contract}:${id}`],
+      tokens: [`${contract}:${tokenId}`],
       limit: 20,
     }
   )
@@ -183,11 +192,7 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
       tab = 'info'
     }
 
-    let deeplinkTab: string | null = null
-    if (typeof window !== 'undefined') {
-      const params = new URL(window.location.href).searchParams
-      deeplinkTab = params.get('tab')
-    }
+    const deeplinkTab: string | null = getCurrentTab();
 
     if (deeplinkTab) {
       switch (deeplinkTab) {
@@ -207,6 +212,9 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
           break
         case 'offers':
           tab = 'offers'
+          break
+        case 'resell':
+          tab = 'resell'
           break
       }
     }
@@ -393,7 +401,7 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
                     headers: {
                       'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ token: `${contract}:${id}` }),
+                    body: JSON.stringify({ token: `${contract}:${tokenId}` }),
                   }
                 )
                   .then(({ data, response }) => {
@@ -487,6 +495,9 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
               <PriceData token={token} />
               {isMounted && (
                 <TokenActions
+                  onResellClick={() => {
+                    setTabValue('resell');
+                  }}
                   token={token}
                   offer={offer}
                   listing={listing}
@@ -514,6 +525,7 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
                   <TabsTrigger value="activity">Activity</TabsTrigger>
                   <TabsTrigger value="listings">Listings</TabsTrigger>
                   <TabsTrigger value="offers">Offers</TabsTrigger>
+                  <TabsTrigger value="resell">Resell</TabsTrigger>
                 </TabsList>
                 <TabsContent value="attributes">
                   {token?.token?.attributes && (
@@ -587,6 +599,13 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
                     isOwner={isOwner}
                   />
                 </TabsContent>
+                <TabsContent value="resell">
+                  <CreateWidget
+                    existingWidget={existingWidget}
+                    contractAddress={contract}
+                    token={token}
+                  />
+                </TabsContent>
               </Tabs.Root>
             </>
           )}
@@ -596,20 +615,23 @@ const IndexPage: NextPage<Props> = ({ assetId, ssr }) => {
   )
 }
 
-type SSRProps = {
-  collection?:
+
+type ClientProps = {
+  assetId?: string
+  collectionFallback?:
     | paths['/collections/v7']['get']['responses']['200']['schema']
     | null
-  tokens?: paths['/tokens/v6']['get']['responses']['200']['schema'] | null
+  tokensFallback?: paths['/tokens/v6']['get']['responses']['200']['schema'] | null
+  existingWidget: AssetWidget | null;
 }
 
-export const getServerSideProps: GetServerSideProps<{
-  assetId?: string
-  ssr: SSRProps
-}> = async ({ params, res }) => {
+export const getServerSideProps: GetServerSideProps<ClientProps> = async (ctx) => {
+  const { params } = ctx;
+  const { userId } = getAuth(ctx.req);
+
   const assetId = params?.assetId ? params.assetId.toString().split(':') : []
   let collectionId = assetId[0]
-  const id = assetId[1]
+  const tokenId = assetId[1]
   const { reservoirBaseUrl } =
     supportedChains.find((chain) => params?.chain === chain.routePrefix) ||
     DefaultChain
@@ -623,15 +645,15 @@ export const getServerSideProps: GetServerSideProps<{
   }
 
   let tokensQuery: paths['/tokens/v6']['get']['parameters']['query'] = {
-    tokens: [`${contract}:${id}`],
+    tokens: [`${contract}:${tokenId}`],
     includeAttributes: true,
     includeTopBid: true,
     normalizeRoyalties: NORMALIZE_ROYALTIES,
     includeDynamicPricing: true,
   }
 
-  let tokens: SSRProps['tokens'] = null
-  let collection: SSRProps['collection'] = null
+  let tokensFallback: ClientProps['tokensFallback'] = null
+  let collectionFallback: AssetPageProps['collectionFallback'] = null
 
   try {
     const tokensPromise = fetcher(
@@ -641,13 +663,14 @@ export const getServerSideProps: GetServerSideProps<{
     )
 
     const tokensResponse = await tokensPromise
-    tokens = tokensResponse.data
-      ? (tokensResponse.data as Props['ssr']['tokens'])
+
+    tokensFallback = tokensResponse.data
+      ? (tokensResponse.data as AssetPageProps['tokensFallback'])
       : {}
 
     let collectionQuery: paths['/collections/v7']['get']['parameters']['query'] =
       {
-        id: tokens?.tokens?.[0]?.token?.collection?.id,
+        id: tokensFallback?.tokens?.[0]?.token?.collection?.id,
         normalizeRoyalties: NORMALIZE_ROYALTIES,
       }
 
@@ -658,20 +681,35 @@ export const getServerSideProps: GetServerSideProps<{
     )
 
     const collectionsResponse = await collectionsPromise
-    collection = collectionsResponse.data
-      ? (collectionsResponse.data as Props['ssr']['collection'])
+    collectionFallback = collectionsResponse.data
+      ? (collectionsResponse.data as AssetPageProps['collectionFallback'])
       : {}
 
-    res.setHeader(
+    ctx.res.setHeader(
       'Cache-Control',
       'public, s-maxage=30, stale-while-revalidate=60'
     )
   } catch (e) {}
 
+  let assetEmbedding = null;
+  if (userId && contract) {
+    assetEmbedding = await xata.db.assetEmbedding
+      .select(['sendFeeToWalletAddress', 'resellingFeePercentage', 'defaultLayout'])
+      .filter({ assetAddress: contract, assetTokenId: tokenId, "user.username": userId })
+      .getFirst();
+  }
+  if (assetEmbedding) {
+    // the xata fields are not serializable, and we don't need them here
+    assetEmbedding = _omit(assetEmbedding, 'xata') as AssetWidget;
+  }
+
   return {
     props: {
+      ...buildClerkProps(ctx.req),
       assetId: params?.assetId as string,
-      ssr: { collection, tokens },
+      existingWidget: assetEmbedding,
+      collectionFallback,
+      tokensFallback
     },
   }
 }

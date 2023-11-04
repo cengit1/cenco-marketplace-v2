@@ -115,5 +115,10 @@ function clearAllAttributes(router: NextRouter) {
   )
 }
 
+function getCurrentTab() {
+  if (typeof window === 'undefined') return null;
+  const params = new URL(window.location.href).searchParams
+  return params.get('tab')
+}
 
-export { addParam, removeParam, hasParam, clearAllAttributes }
+export { addParam, removeParam, hasParam, clearAllAttributes, getCurrentTab }

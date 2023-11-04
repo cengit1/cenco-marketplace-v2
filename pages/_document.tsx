@@ -15,7 +15,7 @@ class MyDocument extends Document {
 
   render() {
     return (
-      <Html>
+      <Html style={{ padding: 0, margin: 0 }}>
         <Head>
           <style
             id="stitches"
@@ -65,7 +65,7 @@ class MyDocument extends Document {
           property="reservoir:token-url-zora"
           content="/zora/asset/${contract}:${tokenId}"
         />
-        <body>
+        <body style={{ padding: 0, margin: 0 }}>
           <Main />
           <NextScript />
         </body>

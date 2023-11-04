@@ -1,0 +1,18 @@
+{
+  "id": "mig_ck22r4a0onobkuttrncg",
+  "parentID": "mig_ck0rbvrf4dpqf7fqn850",
+  "checksum": "1:9953b396d30e5492b1d8de8c6786921e16e6e17c21cb221734718558063bc616",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "chain",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": "\"\""
+        },
+        "table": "assetEmbedding"
+      }
+    }
+  ]
+}

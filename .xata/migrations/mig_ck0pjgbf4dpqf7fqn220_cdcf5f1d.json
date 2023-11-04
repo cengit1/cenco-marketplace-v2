@@ -1,0 +1,24 @@
+{
+  "id": "mig_ck0pjgbf4dpqf7fqn220",
+  "parentID": "mig_ck0ov4occbt7ppc8q2eg",
+  "checksum": "1:cdcf5f1d05c19c6f2f94b04ec5396e6d4a5ade93cee0189aecdc5286ed90635c",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "feesOnTop",
+        "table": "assetEmbedding"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "resellingFeePercentage",
+          "type": "float",
+          "notNull": true,
+          "defaultValue": "3"
+        },
+        "table": "assetEmbedding"
+      }
+    }
+  ]
+}

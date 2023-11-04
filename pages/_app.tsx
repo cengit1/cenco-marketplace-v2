@@ -1,8 +1,4 @@
-import AnalyticsProvider, {
-  initializeAnalytics,
-} from 'components/AnalyticsProvider'
-initializeAnalytics()
-import ErrorTrackingProvider from 'components/ErrorTrackingProvider'
+import { ClerkProvider } from '@clerk/nextjs'
 
 import { Inter } from '@next/font/google'
 import type { AppContext, AppProps } from 'next/app'
@@ -10,6 +6,8 @@ import { default as NextApp } from 'next/app'
 import { ThemeProvider, useTheme } from 'next-themes'
 import { darkTheme, globalReset } from 'stitches.config'
 import '@rainbow-me/rainbowkit/styles.css'
+import "../styles/globals.css"
+
 import {
   RainbowKitProvider,
   getDefaultWallets,
@@ -38,6 +36,8 @@ import { WebsocketContextProvider } from 'context/WebsocketContextProvider'
 import ReferralContextProvider, {
   ReferralContext,
 } from 'context/ReferralContextProvider'
+import {  QueryClientProvider } from 'react-query';
+import { reactQueryClient } from '../utils/api';
 
 //CONFIGURABLE: Use nextjs to load your own custom font: https://nextjs.org/docs/basic-features/font-optimization
 const inter = Inter({
@@ -78,26 +78,26 @@ const reservoirKitThemeOverrides = {
 
 function AppWrapper(props: AppProps & { baseUrl: string }) {
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      value={{
-        dark: darkTheme.className,
-        light: 'light',
-      }}
-    >
-      <WagmiConfig config={wagmiClient}>
-        <ChainContextProvider>
-          <AnalyticsProvider>
-            <ErrorTrackingProvider>
+    <ClerkProvider {...props}>
+      <QueryClientProvider client={reactQueryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          value={{
+            dark: darkTheme.className,
+            light: 'light',
+          }}
+        >
+          <WagmiConfig config={wagmiClient}>
+            <ChainContextProvider>
               <ReferralContextProvider>
                 <MyApp {...props} />
               </ReferralContextProvider>
-            </ErrorTrackingProvider>
-          </AnalyticsProvider>
-        </ChainContextProvider>
-      </WagmiConfig>
-    </ThemeProvider>
+            </ChainContextProvider>
+          </WagmiConfig>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
   )
 }
 

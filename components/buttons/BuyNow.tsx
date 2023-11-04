@@ -22,6 +22,7 @@ type Props = {
   buttonChildren?: ReactNode
   mutate?: SWRResponse['mutate']
   openState?: ComponentPropsWithoutRef<typeof BuyModal>['openState']
+  feesOnTopBps?: string[]
 }
 
 const BuyNow: FC<Props> = ({
@@ -33,6 +34,7 @@ const BuyNow: FC<Props> = ({
   buttonProps = {},
   buttonChildren,
   openState,
+  feesOnTopBps
 }) => {
   const { openConnectModal } = useConnectModal()
   const marketplaceChain = useMarketplaceChain()
@@ -55,7 +57,8 @@ const BuyNow: FC<Props> = ({
       //CONFIGURABLE: set any fees on top of orders, note that these will only
       // apply to native orders (using the reservoir order book) and not to external orders (opensea, blur etc)
       // Refer to our docs for more info: https://docs.reservoir.tools/reference/sweepmodal-1
-      // feesOnTopBps={["0xabc:50"]}
+      // Refer to our docs for more info: https://docs.reservoir.tools/reference/sweepmodal
+      feesOnTopBps={feesOnTopBps}
       feesOnTopUsd={feesOnTop}
       chainId={marketplaceChain.id}
       onClose={(data, stepData, currentStep) => {

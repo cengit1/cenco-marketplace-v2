@@ -1,0 +1,19 @@
+{
+  "id": "mig_ck0ov4occbt7ppc8q2eg",
+  "parentID": "mig_cjssaolhb6e376l192m0",
+  "checksum": "1:b32d1f0ab79aac5a17968f8547d080a8d75cb040a80218d336a7f83ad12f615f",
+  "operations": [
+    {
+      "renameTable": {
+        "newName": "user",
+        "oldName": "users"
+      }
+    },
+    {
+      "renameTable": {
+        "newName": "assetEmbedding",
+        "oldName": "assetEmbeddings"
+      }
+    }
+  ]
+}

@@ -1,18 +1,10 @@
 import { DefaultChain } from './.cache/chains.mjs'
-import { withSentryConfig } from '@sentry/nextjs'
 
-const sentryWebpackPluginOptions = {
-  org: process.env.SENTRY_ORG,
-  project: 'javascript-nextjs',
-  silent: true,
-}
 /**
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
-  sentry: {
-    hideSourceMaps: false,
-  },
+  productionBrowserSourceMaps: true,
   async rewrites() {
     return [
       {
@@ -59,23 +51,6 @@ const nextConfig = {
       },
     ]
   },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors 'none'",
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-        ],
-      },
-    ]
-  },
 }
 
-export default withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+export default nextConfig

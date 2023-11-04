@@ -16,17 +16,26 @@ import {
   faCopy,
   faHand,
   faList,
-  faRightFromBracket,
   faStore,
+  faArrowsRotate,
+  faRightToBracket
 } from '@fortawesome/free-solid-svg-icons'
-import CopyText from 'components/common/CopyText'
 import Link from 'next/link'
 import Wallet from './Wallet'
 import { useRouter } from 'next/router'
+import { useClerk, useUser } from '@clerk/nextjs';
+import { EnsAvatar } from '../EnsAvatar';
+import { useLoggedInUser } from '../../utils/auth';
+
 
 export const AccountSidebar: FC = () => {
   const { address } = useAccount()
   const { disconnect } = useDisconnect()
+  const { signOut } = useClerk();
+
+  const { user } = useLoggedInUser();
+
+
   const router = useRouter()
   const {
     avatar: ensAvatar,
@@ -114,59 +123,7 @@ export const AccountSidebar: FC = () => {
                     <FontAwesomeIcon icon={faClose} height={18} width={18} />
                   </Button>
                   <Flex align="center" css={{ gap: '$3', ml: '$3' }}>
-                    {ensAvatar ? (
-                      <Avatar size="large" src={ensAvatar} />
-                    ) : (
-                      <Jazzicon
-                        diameter={52}
-                        seed={jsNumberForAddress(address as string)}
-                      />
-                    )}
-                    <CopyText
-                      text={address || ''}
-                      css={{ width: 'max-content' }}
-                    >
-                      <Flex direction="column">
-                        <Flex
-                          align="center"
-                          css={{
-                            gap: 8,
-                            color: '$gray11',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Text style="body1">
-                            {shortEnsName ? shortEnsName : shortAddress}
-                          </Text>
-                          {!shortEnsName ? (
-                            <FontAwesomeIcon
-                              icon={faCopy}
-                              width={12}
-                              height={14}
-                            />
-                          ) : null}
-                        </Flex>
-                        {shortEnsName ? (
-                          <Flex
-                            align="center"
-                            css={{
-                              gap: 8,
-                              color: '$gray11',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Text style="body2" color="subtle">
-                              {shortAddress}
-                            </Text>
-                            <FontAwesomeIcon
-                              icon={faCopy}
-                              width={12}
-                              height={12}
-                            />
-                          </Flex>
-                        ) : null}
-                      </Flex>
-                    </CopyText>
+                    <EnsAvatar />
                   </Flex>
                   <Grid css={{ gridTemplateColumns: '1fr 1fr', mt: 32 }}>
                     <Link href="/portfolio?tab=items" replace={true}>
@@ -225,7 +182,46 @@ export const AccountSidebar: FC = () => {
                         <Text style="body1">Activity</Text>
                       </Flex>
                     </Link>
+                    {!!user && (
+                      <Link href="/portfolio?tab=reselling" replace={true}>
+                        <Flex
+                          align="center"
+                          css={{
+                            gap: 6,
+                            p: '$3',
+                            color: '$gray10',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faArrowsRotate} />
+                          <Text style="body1">Re-selling</Text>
+                        </Flex>
+                      </Link>
+                    )}
                   </Grid>
+                  {!user && (
+                    <Link href="/sign-in" replace={true}>
+                      <Flex
+                        justify="between"
+                        align="center"
+                        css={{
+                          cursor: 'pointer',
+                          px: '$4',
+                          my: '$3',
+                        }}
+                      >
+                        <Text style="body1">Authenticate to see re-selling items</Text>
+                        <Box css={{ color: '$gray10' }}>
+                          <FontAwesomeIcon
+                            icon={faRightToBracket}
+                            width={16}
+                            height={16}
+                          />
+                        </Box>
+                      </Flex>
+                    </Link>
+                  )}
+
                   <Wallet />
 
                   <Flex
@@ -242,7 +238,7 @@ export const AccountSidebar: FC = () => {
                     size="large"
                     css={{ my: '$4', justifyContent: 'center' }}
                     color="gray3"
-                    onClick={() => disconnect()}
+                    onClick={() => signOut(() => disconnect())}
                   >
                     Disconnect Wallet
                   </Button>

@@ -10,6 +10,7 @@ import { useRouter } from 'next/router'
 import { ComponentPropsWithoutRef, FC, useState } from 'react'
 import { MutatorCallback } from 'swr'
 import { useAccount } from 'wagmi'
+import Resell from '../buttons/Resell';
 
 type Props = {
   token: ReturnType<typeof useTokens>['data'][0]
@@ -18,6 +19,11 @@ type Props = {
   isOwner: boolean
   mutate?: MutatorCallback
   account: ReturnType<typeof useAccount>
+  onResellClick: () => void
+  addToCartEnabled?: boolean
+  resellEnabled?: boolean
+  biddingEnabled?: boolean
+  feesOnTopBps?: string[]
 }
 
 export const TokenActions: FC<Props> = ({
@@ -27,6 +33,11 @@ export const TokenActions: FC<Props> = ({
   isOwner,
   mutate,
   account,
+  onResellClick,
+  addToCartEnabled = true,
+  resellEnabled = true,
+  biddingEnabled = true,
+  feesOnTopBps= [],
 }) => {
   const router = useRouter()
   const bidOpenState = useState(true)
@@ -105,18 +116,33 @@ export const TokenActions: FC<Props> = ({
               buttonProps={{ corners: 'square' }}
               buttonChildren="Buy Now"
               mutate={mutate}
+              feesOnTopBps={feesOnTopBps}
               openState={!isOwner && isBuyRoute ? buyOpenState : undefined}
             />
             {!is1155 && (
-              <AddToCart
-                token={token}
-                buttonCss={{
-                  width: 52,
-                  p: 0,
-                  justifyContent: 'center',
-                }}
-                buttonProps={{ corners: 'square' }}
-              />
+              <>
+                {resellEnabled && (
+                  <Resell
+                    buttonCss={{
+                      width: 52,
+                      p: 0,
+                      justifyContent: 'center',
+                    }}
+                    buttonProps={{ corners: 'square', onClick: onResellClick }}
+                  />
+                )}
+                {addToCartEnabled && (
+                  <AddToCart
+                    token={token}
+                    buttonCss={{
+                      width: 52,
+                      p: 0,
+                      justifyContent: 'center',
+                    }}
+                    buttonProps={{ corners: 'square' }}
+                  />
+                )}
+              </>
             )}
           </Flex>
         )}
@@ -136,7 +162,7 @@ export const TokenActions: FC<Props> = ({
         />
       )}
 
-      {(!isOwner || is1155) && (
+      {(!isOwner || is1155) && biddingEnabled && (
         <Bid
           tokenId={token?.token?.tokenId}
           collectionId={token?.token?.collection?.id}

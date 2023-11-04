@@ -1,0 +1,13 @@
+{
+  "id": "mig_cjsqsflhb6e376l18tbg",
+  "parentID": "mig_cjsqkpvdta33bvce2oeg",
+  "checksum": "1:cea619588451b5bfd3131da30a69d327ebab7f2d80b59cd5ab2317ed0f5ea6a4",
+  "operations": [
+    {
+      "renameTable": {
+        "newName": "assetEmbeddings",
+        "oldName": "resellingItems"
+      }
+    }
+  ]
+}

@@ -21,6 +21,8 @@ import { SyntheticEvent, useContext } from 'react'
 import { MutatorCallback } from 'swr'
 import { formatNumber } from 'utils/numbers'
 import { Address } from 'wagmi'
+import { useRouter } from 'next/router';
+import Resell from '../buttons/Resell';
 
 type TokenCardProps = {
   token: ReturnType<typeof useDynamicTokens>['data'][0]
@@ -47,6 +49,7 @@ export default ({
   tokenCount,
   showSource = true,
 }: TokenCardProps) => {
+  const router = useRouter();
   const { addToast } = useContext(ToastContext)
   const mediaType = extractMediaType(token?.token)
   const showMedia =
@@ -56,10 +59,15 @@ export default ({
     mediaType === 'wav' ||
     mediaType === 'mov'
   const { routePrefix, proxyApi } = useMarketplaceChain()
-  const tokenIsInCart = token && token?.isInCart
-  const isOwner = token?.token?.owner?.toLowerCase() !== address?.toLowerCase()
 
+  const tokenIsInCart = token && token?.isInCart
+  const isOwner = token?.token?.owner?.toLowerCase() === address?.toLowerCase()
   const is1155 = token?.token?.kind === 'erc1155'
+
+  const assetUrl = `/${routePrefix}/asset/${token?.token?.contract}:${token?.token?.tokenId}`;
+  function handleResellClick() {
+    router.push(`${assetUrl}?tab=resell`);
+  }
 
   return (
     <Box
@@ -158,10 +166,7 @@ export default ({
       >
         <FontAwesomeIcon icon={faCheck} width={20} height={20} />
       </Flex>
-      <Link
-        passHref
-        href={`/${routePrefix}/asset/${token?.token?.contract}:${token?.token?.tokenId}`}
-      >
+      <Link passHref href={assetUrl}>
         <Box css={{ background: '$gray3', overflow: 'hidden' }}>
           <TokenMedia
             token={token?.token}
@@ -195,9 +200,7 @@ export default ({
           />
         </Box>
       </Link>
-      <Link
-        href={`/${routePrefix}/asset/${token?.token?.contract}:${token?.token?.tokenId}`}
-      >
+      <Link href={assetUrl}>
         <Flex
           css={{ p: '$4', minHeight: showAsk ? 132 : 0, cursor: 'pointer' }}
           direction="column"
@@ -336,7 +339,7 @@ export default ({
           ) : null}
         </Flex>
       </Link>
-      {showAsk && isOwner && token?.market?.floorAsk?.price?.amount ? (
+      {showAsk && !isOwner && token?.market?.floorAsk?.price?.amount ? (
         <Flex
           className="token-button-container"
           css={{
@@ -361,6 +364,14 @@ export default ({
               corners: 'square',
             }}
             buttonChildren="Buy Now"
+          />
+          <Resell
+            buttonCss={{
+              width: 52,
+              p: 0,
+              justifyContent: 'center',
+            }}
+            buttonProps={{ corners: 'square', onClick: handleResellClick }}
           />
           {addToCartEnabled ? (
             <AddToCart

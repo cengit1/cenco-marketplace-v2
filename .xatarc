@@ -1,0 +1,6 @@
+{
+  "databaseURL": "https://biz-s-workspace-15t2jp.us-east-1.xata.sh/db/platform",
+  "codegen": {
+    "output": "utils/xata.ts"
+  }
+}

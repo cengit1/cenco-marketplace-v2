@@ -1,13 +1,12 @@
 import { Currency } from '@reservoir0x/reservoir-kit-ui'
 import { reservoirChains } from '@reservoir0x/reservoir-sdk'
-import wrappedContracts from './wrappedContracts'
 import { zeroAddress } from 'viem'
 import {
   arbitrum,
   mainnet,
   polygon,
   optimism,
-  Chain,
+  type Chain,
   bsc,
   avalanche,
   polygonZkEvm,

@@ -1,4 +1,4 @@
-import { NextPage } from 'next'
+import {  GetServerSideProps, InferGetServerSidePropsType, NextPage } from 'next'
 import { Text, Flex, Box } from '../../components/primitives'
 import Layout from 'components/Layout'
 import { useMediaQuery } from 'react-responsive'
@@ -40,6 +40,13 @@ import { ToastContext } from 'context/ToastContextProvider'
 import Jazzicon, { jsNumberForAddress } from 'react-jazzicon'
 import { Avatar } from 'components/primitives/Avatar'
 import CopyText from 'components/common/CopyText'
+import { getCurrentTab } from '../../utils/router';
+import { ResellingItemsTable } from '../../components/resell/ResellingItemsTable';
+import { paths } from '@reservoir0x/reservoir-sdk';
+import { AssetWidget, FullAssetWidget } from '../../types/widget';
+import { getAuth } from '@clerk/nextjs/server';
+import { xata } from '../../utils/db';
+import _omit from 'lodash/omit';
 
 type ActivityTypes = Exclude<
   NonNullable<
@@ -52,13 +59,14 @@ type ActivityTypes = Exclude<
 
 export type UserToken = ReturnType<typeof useUserTokens>['data'][0]
 
-const IndexPage: NextPage = () => {
+type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
+const IndexPage: NextPage = ({ items }: Props) => {
   const router = useRouter()
   const { address: accountAddress, isConnected } = useAccount()
   const address = router.query.address
     ? (router.query.address[0] as `0x${string}`)
     : accountAddress
-  const [tabValue, setTabValue] = useState('items')
+  const [tabValue, setTabValue] = useState(getCurrentTab() ?? 'items')
   const [itemView, setItemView] = useState<ItemView>('list')
 
   const [activityTypes, setActivityTypes] = useState<ActivityTypes>(['sale'])
@@ -130,11 +138,7 @@ const IndexPage: NextPage = () => {
   useEffect(() => {
     let tab = tabValue
 
-    let deeplinkTab: string | null = null
-    if (typeof window !== 'undefined') {
-      const params = new URL(window.location.href).searchParams
-      deeplinkTab = params.get('tab')
-    }
+    const deeplinkTab: string | null = getCurrentTab()
 
     if (deeplinkTab) {
       switch (deeplinkTab) {
@@ -152,6 +156,9 @@ const IndexPage: NextPage = () => {
           break
         case 'activity':
           tab = 'activity'
+          break
+        case 'reselling':
+          tab = 'reselling'
           break
       }
     }
@@ -261,6 +268,7 @@ const IndexPage: NextPage = () => {
                         <TabsTrigger value="listings">Listings</TabsTrigger>
                         <TabsTrigger value="offers">Offers Made</TabsTrigger>
                         <TabsTrigger value="activity">Activity</TabsTrigger>
+                        <TabsTrigger value="reselling">Re-selling</TabsTrigger>
                       </TabsList>
                     </Flex>
 
@@ -408,6 +416,9 @@ const IndexPage: NextPage = () => {
                         </Box>
                       </Flex>
                     </TabsContent>
+                    <TabsContent value="reselling">
+                      <ResellingItemsTable items={items} />
+                    </TabsContent>
                   </Tabs.Root>
                 </>
               )}
@@ -470,6 +481,55 @@ const IndexPage: NextPage = () => {
       </Layout>
     </>
   )
+}
+
+type ClientProps = {
+  items?: (FullAssetWidget & {
+    xata: {
+      createdAt: string,
+      updatedAt: string,
+      version: number
+    }
+  })[]
+};
+export const getServerSideProps: GetServerSideProps<ClientProps> = async (ctx) => {
+  const { userId } = getAuth(ctx.req);
+  if (userId) {
+    const items = (
+      await xata.db.assetEmbedding
+        .select(['sendFeeToWalletAddress', 'resellingFeePercentage', 'defaultLayout', "assetAddress", "assetTokenId", 'chain'])
+        .filter({ "user.username": userId })
+        .sort('xata.createdAt', 'desc')
+        .getMany()
+    ).map((item) => {
+      return {
+        ...item,
+        xata: {
+          ...item.xata,
+          createdAt: item.xata.createdAt.toISOString(),
+          updatedAt: item.xata.updatedAt.toISOString(),
+        }
+      }
+    }) as (
+      FullAssetWidget & {
+      xata: {
+        createdAt: string,
+        updatedAt: string,
+        version: number
+      }
+    }
+      )[];
+    return {
+      props: {
+        items: items ?? [],
+      }
+    };
+  }
+  return {
+    props: {
+      items: [],
+    }
+  };
 }
 
 export default IndexPage

@@ -1,0 +1,16 @@
+{
+  "id": "mig_ck0r91ega6tatjnqcgng",
+  "parentID": "mig_ck0pjgbf4dpqf7fqn220",
+  "checksum": "1:6a7cfcd6865dc3c336650d0e98635f609c18e0aff80cefdaeb886ca4700718a4",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "walletAddress",
+          "type": "string"
+        },
+        "table": "assetEmbedding"
+      }
+    }
+  ]
+}
