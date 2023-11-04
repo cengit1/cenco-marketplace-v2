@@ -107,6 +107,7 @@ const IndexPage: NextPage<AssetPageProps> = ({ assetId, tokensFallback, collecti
   const { data: collections } = useCollections(
     {
       includeSecurityConfigs: true,
+      includeMintStages: true,
       id: token?.token?.collection?.id,
     },
     {
@@ -499,6 +500,7 @@ const IndexPage: NextPage<AssetPageProps> = ({ assetId, tokensFallback, collecti
                     setTabValue('resell');
                   }}
                   token={token}
+                  collection={collection}
                   offer={offer}
                   listing={listing}
                   isOwner={isOwner}
