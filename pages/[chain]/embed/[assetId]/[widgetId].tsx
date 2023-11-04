@@ -75,6 +75,8 @@ const IndexPage: NextPage<Props> = ({ assetId, widget, feesOnTopBps, ssr }) => {
   const { data: collections } = useCollections(
     {
       id: token?.token?.collection?.id,
+      includeSecurityConfigs: true,
+      includeMintStages: true,
     },
     {
       fallbackData: [ssr.collection],
@@ -105,8 +107,6 @@ const IndexPage: NextPage<Props> = ({ assetId, widget, feesOnTopBps, ssr }) => {
 
   const offer = offers && offers[0] ? offers[0] : undefined
   const listing = listings && listings[0] ? listings[0] : undefined
-
-  const attributesData = useAttributes(collectionId)
 
   let countOwned = 0
   if (is1155) {
@@ -270,6 +270,7 @@ const IndexPage: NextPage<Props> = ({ assetId, widget, feesOnTopBps, ssr }) => {
 
                   {isMounted && (
                     <TokenActions
+                      collection={collection}
                       feesOnTopBps={feesOnTopBps}
                       addToCartEnabled={false}
                       resellEnabled={false}

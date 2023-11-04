@@ -6,7 +6,7 @@ import { default as NextApp } from 'next/app'
 import { ThemeProvider, useTheme } from 'next-themes'
 import { darkTheme, globalReset } from 'stitches.config'
 import '@rainbow-me/rainbowkit/styles.css'
-import "../styles/globals.css"
+import "../styles/global.css"
 
 import {
   RainbowKitProvider,
